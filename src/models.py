@@ -1,26 +1,58 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
-
-from .database import Base
-
-
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
-
-    items = relationship("Item", back_populates="owner")
+# from __future__ import annotations
+from typing import ForwardRef
+from pydantic import BaseModel
 
 
-class Item(Base):
-    __tablename__ = "items"
 
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    description = Column(String, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
+# Python class loading sucks - part 1
+Article = ForwardRef('Article')
+User = ForwardRef('User')
+Tag = ForwardRef('Tag')
 
-    owner = relationship("User", back_populates="items")
+
+
+# USER
+class UserBase(BaseModel):
+    email: str
+class UserCreate(UserBase):
+    password: str
+class User(UserBase):
+    id: int
+    articles: list[Article] = []
+    class Config:
+        orm_mode = True
+
+
+
+# ARTICLE
+class ArticleBase(BaseModel): # Create or read
+    title: str
+    content: str | None = None
+class ArticleCreate(ArticleBase): # Create
+    author_id: int
+class Article(ArticleBase): # Read
+    id: int
+    author_id: int
+    tags: list[Tag] = []
+    class Config:
+        orm_mode = True
+
+
+
+# TAG
+class TagBase(BaseModel):
+    name: str
+class TagCreate(TagBase):
+    pass
+class Tag(TagBase):
+    id: int
+    articles: list[Article] = []
+    class Config:
+        orm_mode = True
+
+
+
+# Python class loading sucks - part 2
+Tag.update_forward_refs()
+User.update_forward_refs()
+Article.update_forward_refs()
