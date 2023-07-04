@@ -9,6 +9,7 @@ pip install SQLAlchemy
 
 Run : [http://localhost:8000/](http://localhost:8000/)
 ```bash
+conda activate fastapi
 uvicorn src.main:app --reload
 ```
 
