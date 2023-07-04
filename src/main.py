@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+import pydantic
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
@@ -25,7 +26,6 @@ def get_db():
 
 @app.post("/user/create", response_model=models.User)
 def user_create(user: models.UserCreate, db: Session = Depends(get_db)):
-    print("---------------------")
     existing_user = crud.user_get_by_email(db, email=user.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="A User with this Email already exists")
@@ -49,6 +49,13 @@ def user_delete(user_id: int, db: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return crud.user_delete(db=db, user=user)
+
+@app.patch("/user/{user_id}", response_model=models.User)
+def user_patch(user_id: int, body: models.UserPatch, db: Session = Depends(get_db)):
+    user = crud.user_get(db, user_id=user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return crud.user_patch(db=db, user=user, body=body)
 
 
 
@@ -82,6 +89,13 @@ def article_delete(article_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Article not found")
     return crud.article_delete(db=db, article=article)
 
+@app.patch("/article/{article_id}", response_model=models.Article)
+def article_patch(article_id: int, body: models.ArticlePatch, db: Session = Depends(get_db)):
+    article = crud.article_get(db, article_id=article_id)
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return crud.article_patch(db=db, article=article, body=body)
+
 
 
 ########
@@ -113,3 +127,10 @@ def tag_delete(tag_id: int, db: Session = Depends(get_db)):
     if tag is None:
         raise HTTPException(status_code=404, detail="Tag not found")
     return crud.tag_delete(db=db, tag=tag)
+
+@app.patch("/tag/{tag_id}", response_model=models.Tag)
+def article_patch(tag_id: int, body: models.TagPatch, db: Session = Depends(get_db)):
+    tag = crud.tag_get(db, tag_id=tag_id)
+    if tag is None:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    return crud.tag_patch(db=db, tag=tag, body=body)

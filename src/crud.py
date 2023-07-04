@@ -5,6 +5,15 @@ from .schemas import User, Article, Tag
 
 
 
+#############
+# FUNCTIONS #
+#############
+def patch_entity(entity, new_values):
+    for key, value in new_values.__dict__.items():
+        setattr(entity, key, value)
+
+
+
 ########
 # USER #
 ########
@@ -30,6 +39,12 @@ def user_create(db: Session, user: models.UserCreate):
 
 def user_delete(db: Session, user: User):
     db.query(User).filter(User.id == user.id).delete(synchronize_session="fetch")
+
+def user_patch(db: Session, user: models.User, body: models.UserPatch):
+    patch_entity(user, body)
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 
@@ -60,12 +75,11 @@ def article_create(db: Session, article: models.ArticleCreate):
 def article_delete(db: Session, article: Article):
     db.query(Article).filter(Article.id == article.id).delete(synchronize_session="fetch")
 
-# def create_user_item(db: Session, item: ItemCreate, user_id: int):
-#     db_item = models.Item(**item.dict(), owner_id=user_id)
-#     db.add(db_item)
-#     db.commit()
-#     db.refresh(db_item)
-#     return db_item
+def article_patch(db: Session, article: models.Article, body: models.ArticlePatch):
+    patch_entity(article, body)
+    db.commit()
+    db.refresh(article)
+    return article
 
 
 
@@ -93,3 +107,9 @@ def tag_create(db: Session, tag: models.TagCreate):
 
 def tag_delete(db: Session, tag: Tag):
     db.query(Tag).filter(Tag.id == tag.id).delete(synchronize_session="fetch")
+
+def tag_patch(db: Session, tag: models.Tag, body: models.TagPatch):
+    patch_entity(tag, body)
+    db.commit()
+    db.refresh(tag)
+    return tag
